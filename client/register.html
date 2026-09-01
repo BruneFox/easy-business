@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация | Pet Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdf6e3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+        }
+        h2 { text-align: center; color: #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        input {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+        }
+        button {
+            width: 100%; padding: 10px; background-color: #ff9f43;
+            color: white; border: none; border-radius: 6px; font-size: 16px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background-color: #ff7f00; }
+        #message { margin-top: 15px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Создать аккаунт</h2>
+    <form id="registerForm">
+        <div class="input-group">
+            <label for="nickname">Никнейм</label>
+            <input type="text" id="nickname" required>
+        </div>
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Останавливаем стандартную перезагрузку страницы
+
+        const nickname = document.getElementById('nickname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const messageDiv = document.getElementById('message');
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, email, password }) // Формируем JSON
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.style.color = 'green';
+                messageDiv.innerText = result.message + " Добро пожаловать, " + result.nickname + "!";
+                document.getElementById('registerForm').reset();
+            } else {
+                messageDiv.style.color = 'red';
+                messageDiv.innerText = "Ошибка: " + (result.detail || "Проверьте данные");
+            }
+        } catch (error) {
+            messageDiv.style.color = 'red';
+            messageDiv.innerText = "Ошибка соединения с сервером.";
+        }
+    });
+</script>
+
+</body>
+</html>

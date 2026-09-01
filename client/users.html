@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База игроков | Pet Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdf6e3;
+            padding: 40px;
+            margin: 0;
+        }
+        h2 { color: #333; }
+        table {
+            width: 100%; max-width: 800px; border-collapse: collapse;
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #ff9f43; color: white; }
+        tr:hover { background-color: #f9f9f9; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<h2>Зарегистрированные игроки</h2>
+<table id="usersTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Никнейм</th>
+            <th>Email</th>
+            <th>Пароль</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Данные будут загружены сюда через JS -->
+    </tbody>
+</table>
+<p id="statusMessage">Загрузка данных...</p>
+
+<script>
+    async function loadUsers() {
+        const tbody = document.querySelector('#usersTable tbody');
+        const statusMessage = document.getElementById('statusMessage');
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/users');
+            if (!response.ok) throw new Error("Не удалось загрузить данные");
+
+            const users = await response.json();
+            statusMessage.style.display = 'none'; // Прячем надпись "Загрузка"
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                // Важно: ключи должны совпадать с колонками твоей модели SQLAlchemy
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.nickname || user.nikname}</td>
+                    <td>${user.email}</td>
+                    <td>${user.password}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            statusMessage.className = 'error';
+            statusMessage.innerText = "Ошибка подключения к серверу. Убедитесь, что uvicorn запущен.";
+        }
+    }
+
+    // Запускаем загрузку сразу при открытии страницы
+    loadUsers();
+</script>
+
+</body>
+</html>
