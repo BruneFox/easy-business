@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация | Pet Simulator</title>
+    <title>Реєстрація | business simulator</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -41,10 +41,10 @@
 <body>
 
 <div class="card">
-    <h2>Создать аккаунт</h2>
+    <h2>Створити аккаунт</h2>
     <form id="registerForm">
         <div class="input-group">
-            <label for="nickname">Никнейм</label>
+            <label for="nickname">Нікнейм</label>
             <input type="text" id="nickname" required>
         </div>
         <div class="input-group">
@@ -55,14 +55,14 @@
             <label for="password">Пароль</label>
             <input type="password" id="password" required>
         </div>
-        <button type="submit">Зарегистрироваться</button>
+        <button type="submit">Зареєструватися</button>
     </form>
     <div id="message"></div>
 </div>
 
 <script>
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Останавливаем стандартную перезагрузку страницы
+        e.preventDefault();
 
         const nickname = document.getElementById('nickname').value;
         const email = document.getElementById('email').value;
@@ -80,11 +80,11 @@
 
             if (response.ok) {
                 messageDiv.style.color = 'green';
-                messageDiv.innerText = result.message + " Добро пожаловать, " + result.nickname + "!";
+                messageDiv.innerText = result.message + "Вітаю , " + result.nickname + "!";
                 document.getElementById('registerForm').reset();
             } else {
                 messageDiv.style.color = 'red';
-                messageDiv.innerText = "Ошибка: " + (result.detail || "Проверьте данные");
+                messageDiv.innerText = "Помилка: " + (result.detail || "Перевірте данні");
             }
         } catch (error) {
             messageDiv.style.color = 'red';

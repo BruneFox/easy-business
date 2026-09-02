@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Бизнес Симулятор</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdf6e3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+        }
+        h2 { text-align: center; color: #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        input {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+        }
+        button {
+            width: 100%; padding: 10px; background-color: #ff9f43;
+            color: white; border: none; border-radius: 6px; font-size: 16px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background-color: #ff7f00; }
+        #message { margin-top: 15px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Вход в аккаунт</h2>
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="nickname">Никнейм</label>
+            <input type="text" id="nickname" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">Войти</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nickname = document.getElementById('nickname').value;
+        const password = document.getElementById('password').value;
+        const messageDiv = document.getElementById('message');
+
+        try {
+            // Обращаемся к роуту логина
+            const response = await fetch('http://127.0.0.1:8000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.style.color = 'green';
+                messageDiv.innerText = "Успешный вход! Загрузка профиля...";
+
+                localStorage.setItem("access_token", result.access_token);
+
+                setTimeout(() => {
+                    window.location.href = "/profile";
+                }, 1000); // пауза в 1 секунду, чтобы юзер успел прочитать сообщение
+
+            } else {
+                messageDiv.style.color = 'red';
+                messageDiv.innerText = "Ошибка: " + (result.detail || "Неверные данные");
+            }
+        } catch (error) {
+            messageDiv.style.color = 'red';
+            messageDiv.innerText = "Ошибка соединения с сервером.";
+        }
+    });
+</script>
+
+</body>
+</html>
