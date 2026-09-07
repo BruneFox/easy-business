@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, CheckConstraint, Integer
+from sqlalchemy import String, ForeignKey,  Integer
 from config import settings
 
 engine = create_async_engine(settings.database_url, echo=False)
