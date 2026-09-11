@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey,  Integer
@@ -32,6 +33,7 @@ class Busisness(Base):
     product: Mapped[int] = mapped_column(default=0)
     id_boss: Mapped[int] = mapped_column(ForeignKey("user.id"))
     boss:Mapped["User"] = relationship(back_populates="users_buisnesses")
+    last_update: Mapped[datetime] = mapped_column(default=datetime.now)
 
 
 

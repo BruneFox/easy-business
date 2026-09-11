@@ -7,6 +7,10 @@ class UserData(BaseModel):
     password: str
 class BusinessData(BaseModel):
     name:str
+
+class BusinessAction(BaseModel):
+    id:int
+
 class UserLogin(BaseModel):
     nickname: str
     password: str
