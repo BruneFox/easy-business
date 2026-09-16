@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Реєстрація | business simulator</title>
+    <title>Реєстрація | Бізнес Симулятор</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fdf6e3;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0b0c10;
+            color: #c5c6c7;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -15,27 +16,51 @@
             margin: 0;
         }
         .card {
-            background: white;
+            background: #1f2833;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: 1px solid #66fcf1;
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.15);
             width: 100%;
             max-width: 350px;
         }
-        h2 { text-align: center; color: #333; }
+        h2 {
+            text-align: center;
+            color: #45a29e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(69, 162, 158, 0.5);
+            margin-top: 0;
+        }
         .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        label { display: block; margin-bottom: 5px; color: #45a29e; font-size: 14px; text-transform: uppercase; }
         input {
             width: 100%; padding: 10px; box-sizing: border-box;
-            border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+            background: #121212; border: 1px solid #45a29e; border-radius: 4px;
+            color: #66fcf1; font-family: 'Courier New', Courier, monospace; font-size: 14px;
+            outline: none; transition: 0.3s;
+        }
+        input:focus {
+            border-color: #66fcf1;
+            box-shadow: 0 0 8px rgba(102, 252, 241, 0.5);
         }
         button {
-            width: 100%; padding: 10px; background-color: #ff9f43;
-            color: white; border: none; border-radius: 6px; font-size: 16px;
-            cursor: pointer; transition: background 0.3s;
+            width: 100%; padding: 10px; background-color: transparent;
+            color: #66fcf1; border: 1px solid #66fcf1; border-radius: 4px; font-size: 16px;
+            cursor: pointer; transition: all 0.3s; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; text-transform: uppercase; margin-top: 10px;
         }
-        button:hover { background-color: #ff7f00; }
-        #message { margin-top: 15px; text-align: center; font-size: 14px; }
+        button:hover {
+            background-color: #66fcf1;
+            color: #000;
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.8);
+        }
+        #message { margin-top: 15px; text-align: center; font-size: 14px; font-weight: bold; }
+        .switch-link {
+            display: block; text-align: center; margin-top: 20px; color: #c5c6c7;
+            text-decoration: none; font-size: 12px; transition: 0.2s;
+        }
+        .switch-link:hover { color: #66fcf1; text-shadow: 0 0 5px rgba(102, 252, 241, 0.5); }
     </style>
 </head>
 <body>
@@ -58,6 +83,9 @@
         <button type="submit">Зареєструватися</button>
     </form>
     <div id="message"></div>
+
+    <!-- Кнопка-ссылка на логин -->
+    <a href="/login_page" class="switch-link">Вже є аккаунт? Увійти у систему</a>
 </div>
 
 <script>
@@ -73,22 +101,24 @@
             const response = await fetch('http://127.0.0.1:8000/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nickname, email, password }) // Формируем JSON
+                body: JSON.stringify({ nickname, email, password })
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                messageDiv.style.color = 'green';
-                messageDiv.innerText = result.message + "Вітаю , " + result.nickname + "!";
+                messageDiv.style.color = '#66fcf1';
+                messageDiv.style.textShadow = '0 0 5px rgba(102, 252, 241, 0.5)';
+                messageDiv.innerText = result.message + " Вітаю, " + result.nickname + "!";
                 document.getElementById('registerForm').reset();
             } else {
-                messageDiv.style.color = 'red';
+                messageDiv.style.color = '#ff007f';
+                messageDiv.style.textShadow = '0 0 5px rgba(255, 0, 127, 0.5)';
                 messageDiv.innerText = "Помилка: " + (result.detail || "Перевірте данні");
             }
         } catch (error) {
-            messageDiv.style.color = 'red';
-            messageDiv.innerText = "Ошибка соединения с сервером.";
+            messageDiv.style.color = '#ff007f';
+            messageDiv.innerText = "Помилка з'єднання з сервером.";
         }
     });
 </script>

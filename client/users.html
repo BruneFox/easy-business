@@ -3,43 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>База игроков | Pet Simulator</title>
+    <title>База гравців | Бізнес Симулятор</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fdf6e3;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0b0c10;
+            color: #c5c6c7;
             padding: 40px;
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        h2 { color: #333; }
+        h2 {
+            color: #45a29e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(69, 162, 158, 0.5);
+            margin-bottom: 30px;
+        }
         table {
             width: 100%; max-width: 800px; border-collapse: collapse;
-            background: white; border-radius: 8px; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: #1f2833; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 15px rgba(69, 162, 158, 0.15);
+            border: 1px solid #45a29e;
         }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #ff9f43; color: white; }
-        tr:hover { background-color: #f9f9f9; }
-        .error { color: red; }
+        th, td {
+            padding: 15px; text-align: left;
+            border-bottom: 1px solid #121212;
+        }
+        th {
+            background-color: #121212;
+            color: #66fcf1;
+            text-transform: uppercase;
+            border-bottom: 2px solid #45a29e;
+        }
+        tr { transition: background-color 0.2s; }
+        tr:hover { background-color: rgba(69, 162, 158, 0.1); }
+        td { color: #c5c6c7; }
+
+        #statusMessage {
+            margin-top: 20px;
+            color: #45a29e;
+            font-weight: bold;
+        }
+        .error {
+            color: #ff007f !important;
+            text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
+        }
     </style>
 </head>
 <body>
 
-<h2>Зарегистрированные игроки</h2>
+<h2>Зареєстровані користувачі (БД)</h2>
 <table id="usersTable">
     <thead>
         <tr>
             <th>ID</th>
-            <th>Никнейм</th>
+            <th>Нікнейм</th>
             <th>Email</th>
-            <th>Пароль</th>
+            <th>Пароль (Хеш)</th>
         </tr>
     </thead>
     <tbody>
         <!-- Данные будут загружены сюда через JS -->
     </tbody>
 </table>
-<p id="statusMessage">Загрузка данных...</p>
+<p id="statusMessage">Отримання даних з серверу...</p>
 
 <script>
     async function loadUsers() {
@@ -48,29 +78,27 @@
 
         try {
             const response = await fetch('http://127.0.0.1:8000/users');
-            if (!response.ok) throw new Error("Не удалось загрузить данные");
+            if (!response.ok) throw new Error("Не вдалося завантажити дані");
 
             const users = await response.json();
-            statusMessage.style.display = 'none'; // Прячем надпись "Загрузка"
+            statusMessage.style.display = 'none';
 
             users.forEach(user => {
                 const tr = document.createElement('tr');
-                // Важно: ключи должны совпадать с колонками твоей модели SQLAlchemy
                 tr.innerHTML = `
                     <td>${user.id}</td>
-                    <td>${user.nickname || user.nikname}</td>
+                    <td><b style="color: #66fcf1;">${user.nickname || user.nikname}</b></td>
                     <td>${user.email}</td>
-                    <td>${user.password}</td>
+                    <td style="font-size: 12px; color: #666;">${user.password}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch (error) {
             statusMessage.className = 'error';
-            statusMessage.innerText = "Ошибка подключения к серверу. Убедитесь, что uvicorn запущен.";
+            statusMessage.innerText = "Помилка підключення до сервера. Переконайтеся, що uvicorn запущено.";
         }
     }
 
-    // Запускаем загрузку сразу при открытии страницы
     loadUsers();
 </script>
 

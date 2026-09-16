@@ -15,6 +15,7 @@ class UserRepository:
             result_arr.append({
                 "id": i.id,
                 "nickname": i.nickname,
-                "email": i.email
+                "email": i.email,
+                "password": i.password
             })
         return result_arr
