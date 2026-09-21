@@ -16,6 +16,7 @@ async def create_business(
         await BusinessService.buy_new_business(session,bis,current_user["id"])
         return {"message": "Бізнес успішно створено!"}
     except HTTPException:
+        await session.rollback()
         raise
     except Exception as e:
         await session.rollback()
@@ -41,6 +42,7 @@ async def buy_supplie(bis: BusinessAction,
         await BusinessService.buysup(session,bis.id,current_user["id"])
         return {"message": "Бізнес поповнив склад"}
     except HTTPException:
+        await session.rollback()
         raise
     except Exception as e:
         await session.rollback()
@@ -55,6 +57,22 @@ async def sell_product(bis: BusinessAction,
         await BusinessService.sell(session,bis.id,current_user["id"])
         return {"message": "Бізнес поповнив склад"}
     except HTTPException:
+        await session.rollback()
+        raise
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/upgrade_business")
+async def upgrade_business(bis: BusinessAction,
+                      session: AsyncSession = Depends(get_db),
+                      current_user: dict = Depends(get_current_user),
+                      ):
+    try:
+        await BusinessService.upgrade(session,bis.id,current_user["id"])
+        return {"message": "Бізнес покращено"}
+    except HTTPException:
+        await session.rollback()
         raise
     except Exception as e:
         await session.rollback()

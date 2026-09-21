@@ -163,7 +163,7 @@
             width: 100%;
         }
 
-        .action-btn:hover {
+        .action-btn:hover:not(:disabled) {
             background: #66fcf1;
             color: #000;
         }
@@ -172,7 +172,24 @@
             border-color: #ffb400;
             color: #ffb400;
         }
-        .action-btn.sell:hover { background: #ffb400; color: #000; box-shadow: 0 0 8px #ffb400; }
+        .action-btn.sell:hover:not(:disabled) { background: #ffb400; color: #000; box-shadow: 0 0 8px #ffb400; }
+
+        /* Стиль для кнопки прокачки */
+        .action-btn.upgrade {
+            border-color: #b066fc;
+            color: #b066fc;
+        }
+        .action-btn.upgrade:hover:not(:disabled) {
+            background: #b066fc;
+            color: #000;
+            box-shadow: 0 0 8px #b066fc;
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #555;
+            color: #555;
+        }
 
         .add-business-btn {
             display: flex;
@@ -264,24 +281,39 @@
 
             if (data.busisness && data.busisness.length > 0) {
                 data.busisness.forEach(b => {
-                    const productPercentage = Math.min((b.product / 100) * 100, 100);
+                    const maxProduct = 100 * b.lvl;
+                    const maxWarehouse = 100 * b.lvl * 1.5;
+                    const productPercentage = Math.min((b.product / maxProduct) * 100, 100);
+
+                    const buyCost = maxWarehouse - b.warehouse;
+
+                    const multiplier = Math.floor(b.lvl * 1.2);
+                    const sellRevenue = b.product * 2 * multiplier;
+
+                    let upgradeBtnHTML = "";
+                    if (b.lvl < 15) {
+                        const upgradePrice = 1200 * 0.75 * b.lvl;
+                        upgradeBtnHTML = `<button class="action-btn upgrade" onclick="upgradeBusiness(${b.id}, ${upgradePrice})">⬆ Апгрейд (-${upgradePrice} $)</button>`;
+                    } else {
+                        upgradeBtnHTML = `<button class="action-btn upgrade" disabled>MAX Рівень</button>`;
+                    }
 
                     htmlContent += `
                         <div class="biz-item">
                             <div>
                                 <h3>${b.business_name}</h3>
                                 <p>Рівень: <b>${b.lvl}</b></p>
-                                <p>Сировина: <b>${b.warehouse} / 100</b></p>
-                                <p>Товар: <b>${b.product} / 100</b></p>
+                                <p>Сировина: <b>${b.warehouse} / ${maxWarehouse}</b></p>
+                                <p>Товар: <b>${b.product} / ${maxProduct}</b></p>
 
                                 <div class="progress-container">
                                     <div class="progress-bar" style="width: ${productPercentage}%;"></div>
                                 </div>
                             </div>
                             <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 5px;">
-                                <button class="action-btn" onclick="buySupplies(${b.id})">Купити сировину</button>
-                                <button class="action-btn" onclick="loadData()">Оновити стан</button>
-                                <button class="action-btn sell" onclick="sellProduct(${b.id})">Продати товар</button>
+                                ${upgradeBtnHTML}
+                                <button class="action-btn" onclick="buySupplies(${b.id})" ${buyCost <= 0 ? 'disabled' : ''}>Купити сировину (-${buyCost} $)</button>
+                                <button class="action-btn sell" onclick="sellProduct(${b.id})" ${sellRevenue <= 0 ? 'disabled' : ''}>Продати товар (+${sellRevenue} $)</button>
                             </div>
                         </div>
                     `;
@@ -372,12 +404,40 @@
         }
     }
 
+    async function upgradeBusiness(businessId, price) {
+        const currentMoney = parseFloat(document.getElementById("money_display").innerText);
+
+        if (currentMoney < price) {
+            alert("Недостатньо коштів для покращення!");
+            return;
+        }
+
+        try {
+            const response = await fetch("/upgrade_business", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ id: businessId })
+            });
+
+            if (response.ok) {
+                loadData();
+            } else {
+                const result = await response.json();
+                alert("Помилка: " + (result.detail || "Не вдалося покращити бізнес"));
+            }
+        } catch (error) {
+            alert("Помилка з'єднання з сервером");
+        }
+    }
+
     function logout() {
         localStorage.removeItem("access_token");
         window.location.href = "/login_page";
     }
     setInterval(loadData, 5000);
-</script>
 </script>
 
 </body>

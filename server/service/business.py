@@ -9,16 +9,17 @@ def math_business(business_obj):
     now = datetime.now()
     delta = int((now - business_obj.last_update).total_seconds())
 
-    warehouse_per_tick = 10
-    product_per_tick = 5
+    warehouse_per_tick = 10 * business_obj.lvl
+    product_per_tick = 5 * business_obj.lvl
 
     tick_by_time = delta // 60
 
     if tick_by_time <= 0:
         return
+    max_capacity = 100 * business_obj.lvl
 
     tick_by_warh = business_obj.warehouse // warehouse_per_tick
-    tick_by_prod = (100-business_obj.product)//product_per_tick
+    tick_by_prod = (max_capacity-business_obj.product)//product_per_tick
 
     actual_ticks = min(tick_by_time, tick_by_prod, tick_by_warh)
 
@@ -28,7 +29,7 @@ def math_business(business_obj):
 
     business_obj.warehouse -= actual_ticks*warehouse_per_tick
     business_obj.product += actual_ticks*product_per_tick
-    business_obj.last_update += timedelta(seconds=actual_ticks* 60)
+    business_obj.last_update += timedelta(seconds=actual_ticks * 60)
 
 
 class BusinessService:
@@ -79,16 +80,13 @@ class BusinessService:
             session: AsyncSession,
             bis_id,
             id: int):
-        price = 100
         user_and_business = await BusinessRepository.search_business(session,bis_id,id)
         if not user_and_business:
             raise HTTPException(status_code=404, detail="Користувача не знайдено")
         user_obj = user_and_business[0]
         business_obj = user_and_business[1]
-        if user_obj.money < price:
-            raise HTTPException(status_code=400, detail="Недостатньо коштів!")
         math_business(business_obj)
-        amount_to_buy = 100 - business_obj.warehouse
+        amount_to_buy = int(100 * business_obj.lvl * 1.5) - business_obj.warehouse
         if amount_to_buy <= 0:
             raise HTTPException(status_code=400, detail="Склад вже повністю заповнений!")
         cost = amount_to_buy * 1
@@ -118,11 +116,43 @@ class BusinessService:
         if business_obj.product <= 0:
             raise HTTPException(status_code=400, detail="Немає готового товару для продажу!")
 
-        price = business_obj.product*2
+        price = business_obj.product*2 * int(business_obj.lvl * 1.2)
         user_obj.money += price
         business_obj.product = 0
 
         await session.commit()
         return user_obj, business_obj
+
+    @staticmethod
+    async def upgrade(
+            session: AsyncSession,
+            bis_id,
+            id: int
+    ):
+        upgradet_business = await BusinessRepository.search_business(session,bis_id,id)
+        if not upgradet_business:
+            raise HTTPException(status_code=404, detail="Користувача не знайдено")
+
+        user_up = upgradet_business[0]
+        business_up = upgradet_business[1]
+
+        if business_up.lvl == 15:
+            raise HTTPException(status_code=403, detail="Досягнено максимальний рівень бізнесу")
+        upgrate_price = int(1200*0.75*business_up.lvl)
+
+        if user_up.money>=upgrate_price:
+            user_up.money -= upgrate_price
+            business_up.lvl += 1
+            await session.commit()
+            return user_up, business_up
+        else:
+            raise HTTPException(status_code=400, detail="Недостатньо коштів")
+
+
+
+
+
+
+
 
 
