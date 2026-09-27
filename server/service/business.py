@@ -1,5 +1,4 @@
 from datetime import datetime,timedelta
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from repository.business import BusinessRepository
 from schemas import BusinessData
@@ -42,11 +41,9 @@ class BusinessService:
         price = 500
         user = await BusinessRepository.search_user(session,user_id)
         if not user:
-            raise HTTPException(status_code=404, detail="Користувача не знайдено")
-
+            raise ValueError("користувача не знайдено")
         if user.money < price:
-            raise HTTPException(status_code=400, detail="Недостатньо коштів!")
-
+            raise ValueError("Недостатньо коштів")
         user.money -=price
         new_business = await BusinessRepository.create(session, bis_data.name,user_id)
         await session.commit()
@@ -82,16 +79,16 @@ class BusinessService:
             id: int):
         user_and_business = await BusinessRepository.search_business(session,bis_id,id)
         if not user_and_business:
-            raise HTTPException(status_code=404, detail="Користувача не знайдено")
+            raise ValueError("Користувача не знайдено")
         user_obj = user_and_business[0]
         business_obj = user_and_business[1]
         math_business(business_obj)
         amount_to_buy = int(100 * business_obj.lvl * 1.5) - business_obj.warehouse
         if amount_to_buy <= 0:
-            raise HTTPException(status_code=400, detail="Склад вже повністю заповнений!")
+            raise ValueError("Склад заповнений")
         cost = amount_to_buy * 1
         if user_obj.money < cost:
-            raise HTTPException(status_code=400, detail="Недостатньо коштів!")
+            raise ValueError("Недостатньо коштів")
         user_obj.money -= cost
         business_obj.warehouse += amount_to_buy
 
@@ -106,16 +103,14 @@ class BusinessService:
         user_and_business = await BusinessRepository.search_business(session, bis_id, id)
 
         if not user_and_business:
-            raise HTTPException(status_code=404, detail="Користувача не знайдено")
-
+            raise ValueError("Користувача не знайдено")
         user_obj = user_and_business[0]
         business_obj = user_and_business[1]
 
         math_business(business_obj)
 
         if business_obj.product <= 0:
-            raise HTTPException(status_code=400, detail="Немає готового товару для продажу!")
-
+            raise ValueError("Немає товару для продажу")
         price = business_obj.product*2 * int(business_obj.lvl * 1.2)
         user_obj.money += price
         business_obj.product = 0
@@ -131,13 +126,13 @@ class BusinessService:
     ):
         upgradet_business = await BusinessRepository.search_business(session,bis_id,id)
         if not upgradet_business:
-            raise HTTPException(status_code=404, detail="Користувача не знайдено")
+            raise ValueError("Користувача не знайдено")
 
         user_up = upgradet_business[0]
         business_up = upgradet_business[1]
 
         if business_up.lvl == 15:
-            raise HTTPException(status_code=403, detail="Досягнено максимальний рівень бізнесу")
+            raise ValueError("Максимальний рівень бізнесу")
         upgrate_price = int(1200*0.75*business_up.lvl)
 
         if user_up.money>=upgrate_price:
@@ -146,7 +141,9 @@ class BusinessService:
             await session.commit()
             return user_up, business_up
         else:
-            raise HTTPException(status_code=400, detail="Недостатньо коштів")
+            raise ValueError("Недостатньо коштів")
+
+
 
 
 

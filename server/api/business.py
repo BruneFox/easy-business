@@ -15,12 +15,12 @@ async def create_business(
     try:
         await BusinessService.buy_new_business(session,bis,current_user["id"])
         return {"message": "Бізнес успішно створено!"}
-    except HTTPException:
-        await session.rollback()
-        raise
-    except Exception as e:
+    except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/api/my-business")
@@ -41,12 +41,12 @@ async def buy_supplie(bis: BusinessAction,
     try:
         await BusinessService.buysup(session,bis.id,current_user["id"])
         return {"message": "Бізнес поповнив склад"}
-    except HTTPException:
-        await session.rollback()
-        raise
-    except Exception as e:
+    except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/sell_product")
 async def sell_product(bis: BusinessAction,
@@ -56,12 +56,12 @@ async def sell_product(bis: BusinessAction,
     try:
         await BusinessService.sell(session,bis.id,current_user["id"])
         return {"message": "Бізнес поповнив склад"}
-    except HTTPException:
-        await session.rollback()
-        raise
-    except Exception as e:
+    except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upgrade_business")
 async def upgrade_business(bis: BusinessAction,
@@ -71,9 +71,9 @@ async def upgrade_business(bis: BusinessAction,
     try:
         await BusinessService.upgrade(session,bis.id,current_user["id"])
         return {"message": "Бізнес покращено"}
-    except HTTPException:
-        await session.rollback()
-        raise
-    except Exception as e:
+    except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

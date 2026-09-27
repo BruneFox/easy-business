@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@
             margin-bottom: 30px;
         }
         table {
-            width: 100%; max-width: 800px; border-collapse: collapse;
+            width: 100%; max-width: 1000px; border-collapse: collapse;
             background: #1f2833; border-radius: 8px; overflow: hidden;
             box-shadow: 0 0 15px rgba(69, 162, 158, 0.15);
             border: 1px solid #45a29e;
@@ -51,6 +51,57 @@
             color: #ff007f !important;
             text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
         }
+        .success {
+            color: #66fcf1;
+        }
+
+        /* Кнопки */
+        .action-btn {
+            padding: 6px 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-left: 10px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .ban-btn { background: transparent; color: #ff007f; border: 1px solid #ff007f; }
+        .ban-btn:hover { background: #ff007f; color: #000; box-shadow: 0 0 10px rgba(255, 0, 127, 0.8); }
+        .unban-btn { background: transparent; color: #66fcf1; border: 1px solid #66fcf1; }
+        .unban-btn:hover { background: #66fcf1; color: #000; box-shadow: 0 0 10px rgba(102, 252, 241, 0.8); }
+
+        /* Поле вводу грошей та кнопка */
+        .money-input {
+            width: 70px;
+            padding: 5px;
+            background: #121212;
+            color: #66fcf1;
+            border: 1px solid #45a29e;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+        }
+        .money-input::placeholder { color: #555; }
+        .money-btn {
+            background: transparent;
+            color: #ffb400;
+            border: 1px solid #ffb400;
+            margin-left: 5px;
+        }
+        .money-btn:hover {
+            background: #ffb400;
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 180, 0, 0.8);
+        }
+        .balance-text {
+            color: #ffb400;
+            font-weight: bold;
+            margin-right: 10px;
+            display: inline-block;
+            width: 70px; /* Фіксована ширина для рівного вигляду */
+        }
     </style>
 </head>
 <body>
@@ -62,40 +113,163 @@
             <th>ID</th>
             <th>Нікнейм</th>
             <th>Email</th>
-            <th>Пароль (Хеш)</th>
+            <th>Роль</th>
+            <th>Баланс / Накрутка</th>
+            <th>Статус / Дії</th>
         </tr>
     </thead>
     <tbody>
-        <!-- Данные будут загружены сюда через JS -->
     </tbody>
 </table>
 <p id="statusMessage">Отримання даних з серверу...</p>
 
 <script>
+    const token = localStorage.getItem("access_token");
+
     async function loadUsers() {
         const tbody = document.querySelector('#usersTable tbody');
         const statusMessage = document.getElementById('statusMessage');
 
+        if (!token) {
+            statusMessage.className = 'error';
+            statusMessage.innerText = "Доступ заборонено: відсутній токен авторизації.";
+            return;
+        }
+
         try {
-            const response = await fetch('http://127.0.0.1:8000/users');
-            if (!response.ok) throw new Error("Не вдалося завантажити дані");
+            const response = await fetch('/users', {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            if (response.status === 403 || response.status === 401) {
+                throw new Error("У вас немає прав доступу до цієї сторінки.");
+            }
+            if (!response.ok) throw new Error("Помилка завантаження бази.");
 
             const users = await response.json();
             statusMessage.style.display = 'none';
+            tbody.innerHTML = "";
 
             users.forEach(user => {
                 const tr = document.createElement('tr');
+
+                // Блок блокування та видачі прав
+                const isBanned = user.is_banned;
+                const statusText = isBanned ? '<span class="error">ЗАБЛОКОВАНО</span>' : '<span class="success">АКТИВНИЙ</span>';
+                const btnText = isBanned ? "Розблокувати" : "Заблокувати";
+                const btnClass = isBanned ? "unban-btn" : "ban-btn";
+
+                let actionHtml = "";
+                if (user.role !== "Admin") {
+                    actionHtml = `
+                        <button class="action-btn ${btnClass}" onclick="toggleBan(${user.id})">${btnText}</button>
+                        <button class="action-btn money-btn" onclick="giveAdmin(${user.id})">Дати Адміна</button>
+                    `;
+                }
+
+                // Блок накрутки грошей
+                const moneyHtml = `
+                    <div style="display: flex; align-items: center;">
+                        <span class="balance-text">${user.money} $</span>
+                        <input type="number" id="moneyInput_${user.id}" class="money-input" placeholder="+/-">
+                        <button class="action-btn money-btn" onclick="changeMoney(${user.id})">OK</button>
+                    </div>
+                `;
+
                 tr.innerHTML = `
                     <td>${user.id}</td>
-                    <td><b style="color: #66fcf1;">${user.nickname || user.nikname}</b></td>
+                    <td><b style="color: #66fcf1;">${user.nickname}</b></td>
                     <td>${user.email}</td>
-                    <td style="font-size: 12px; color: #666;">${user.password}</td>
+                    <td>${user.role}</td>
+                    <td>${moneyHtml}</td>
+                    <td>${statusText} ${actionHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch (error) {
             statusMessage.className = 'error';
-            statusMessage.innerText = "Помилка підключення до сервера. Переконайтеся, що uvicorn запущено.";
+            statusMessage.innerText = error.message;
+        }
+    }
+
+    // Зміна балансу
+    async function changeMoney(userId) {
+        const inputField = document.getElementById(`moneyInput_${userId}`);
+        const cashValue = parseInt(inputField.value);
+
+        if (isNaN(cashValue)) {
+            alert("Будь ласка, введіть коректне число (наприклад 500 або -500)");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/change_money/${userId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ cash: cashValue })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                loadUsers();
+            } else {
+                alert("Помилка: " + (result.detail || "Не вдалося змінити баланс"));
+            }
+        } catch (error) {
+            alert("Помилка з'єднання з сервером");
+        }
+    }
+
+    // Блокування
+    async function toggleBan(userId) {
+        try {
+            const response = await fetch(`/ban_user/${userId}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                loadUsers();
+            } else {
+                alert("Помилка: " + (result.detail || "Не вдалося змінити статус"));
+            }
+        } catch (error) {
+            alert("Помилка з'єднання з сервером");
+        }
+    }
+
+    // Видача прав адміністратора
+    async function giveAdmin(userId) {
+        if (!confirm("Ви впевнені, що хочете зробити цього гравця адміністратором?")) return;
+
+        try {
+            const response = await fetch(`/give_admin/${userId}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                loadUsers();
+            } else {
+                alert("Помилка: " + (result.detail || "Не вдалося видати права"));
+            }
+        } catch (error) {
+            alert("Помилка з'єднання з сервером");
         }
     }
 

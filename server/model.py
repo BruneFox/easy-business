@@ -19,10 +19,12 @@ class Base(DeclarativeBase):
 
 class User(Base):
     id:Mapped[int] = mapped_column(primary_key = True)
-    nickname:Mapped[str] = mapped_column(String(30),nullable=False)
+    nickname:Mapped[str] = mapped_column(String(30),nullable=False,unique=True)
     email:Mapped[str]=mapped_column(String(255),nullable=False)
     password:Mapped[str]=mapped_column(String(255),nullable=False)
     money: Mapped[int]=mapped_column(default=5000)
+    role: Mapped[str]=mapped_column(default="Player")
+    is_banned: Mapped[bool] = mapped_column(default=False)
     users_buisnesses:Mapped[list["Busisness"]] = relationship(back_populates="boss")
 
 class Busisness(Base):

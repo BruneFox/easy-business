@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+class ChangeMoney(BaseModel):
+    cash: int
 
 class UserData(BaseModel):
     nickname: str

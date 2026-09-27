@@ -7,15 +7,11 @@ from model import User
 class UserRepository:
     @staticmethod
     async def list_user(session: AsyncSession):
-        s = await session.execute(select(User))
+        s = await session.execute(select(User).order_by(User.id))
         users = s.scalars().all()
-
-        result_arr=[]
-        for i in users:
-            result_arr.append({
-                "id": i.id,
-                "nickname": i.nickname,
-                "email": i.email,
-                "password": i.password
-            })
-        return result_arr
+        return users
+    @staticmethod
+    async def one_user(session: AsyncSession, id_user: int):
+        bad_user = await session.execute(select(User).where(User.id == id_user))
+        head_user = bad_user.scalar_one_or_none()
+        return head_user

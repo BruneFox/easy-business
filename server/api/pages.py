@@ -19,7 +19,7 @@ async def serve_login_page():
     file_path = BASE_DIR / "client" / "login.html"
     return FileResponse(file_path)
 
-@router.get("/players")
+@router.get("/user_list")
 async def serve_users_page():
     file_path = BASE_DIR / "client" / "users.html"
     return FileResponse(file_path)

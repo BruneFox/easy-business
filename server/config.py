@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     db_docker_host: str = "db"
     db_port: int = 5432
     db_name: str
-
+    secret_key: str
     model_config = SettingsConfigDict(env_file="../.env", extra="ignore")
 
     @property

@@ -69,6 +69,23 @@
             text-transform: uppercase;
         }
 
+        .admin-btn {
+            padding: 8px 16px;
+            background-color: transparent;
+            color: #ffb400;
+            border: 1px solid #ffb400;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(255, 180, 0, 0.3);
+            margin-right: 10px;
+        }
+
+        .admin-btn:hover {
+            background-color: #ffb400;
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 180, 0, 0.8);
+        }
         .logout-btn {
             padding: 8px 16px;
             background-color: transparent;
@@ -174,7 +191,6 @@
         }
         .action-btn.sell:hover:not(:disabled) { background: #ffb400; color: #000; box-shadow: 0 0 8px #ffb400; }
 
-        /* Стиль для кнопки прокачки */
         .action-btn.upgrade {
             border-color: #b066fc;
             color: #b066fc;
@@ -239,6 +255,8 @@
         </div>
         <div class="balance-container">
             <div class="balance"><span id="money_display">...</span> $</div>
+
+            <button id="adminPanelBtn" class="admin-btn" style="display: none;" onclick="window.location.href='/user_list'">Адмін-панель</button>
             <button class="logout-btn" onclick="logout()">Відключитися</button>
         </div>
     </div>
@@ -254,9 +272,24 @@
     const token = localStorage.getItem("access_token");
     const container = document.getElementById("businesses_container");
 
+    // Функція для розшифровки ролі з JWT токена
+    function checkAdminRole() {
+        if (!token) return;
+        try {
+            // Розбиваємо токен і декодуємо payload (середину)
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role === "Admin") {
+                document.getElementById("adminPanelBtn").style.display = "inline-block";
+            }
+        } catch (e) {
+            console.error("Помилка декодування токена");
+        }
+    }
+
     if (!token) {
         window.location.href = "/login_page";
     } else {
+        checkAdminRole(); // Перевіряємо роль одразу після завантаження
         loadData();
     }
 
@@ -268,8 +301,12 @@
             }
         })
         .then(response => {
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 logout();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error("Помилка сервера");
             }
             return response.json();
         })
@@ -432,7 +469,6 @@
             alert("Помилка з'єднання з сервером");
         }
     }
-
     function logout() {
         localStorage.removeItem("access_token");
         window.location.href = "/login_page";
