@@ -20,7 +20,7 @@ async def create_business(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
 
 
 @router.get("/api/my-business")
@@ -46,7 +46,7 @@ async def buy_supplie(bis: BusinessAction,
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
 
 @router.post("/sell_product")
 async def sell_product(bis: BusinessAction,
@@ -55,13 +55,13 @@ async def sell_product(bis: BusinessAction,
                       ):
     try:
         await BusinessService.sell(session,bis.id,current_user["id"])
-        return {"message": "Бізнес поповнив склад"}
+        return {"message": "Товар продано"}
     except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
 
 @router.post("/upgrade_business")
 async def upgrade_business(bis: BusinessAction,
@@ -76,4 +76,4 @@ async def upgrade_business(bis: BusinessAction,
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")

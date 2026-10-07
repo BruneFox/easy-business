@@ -30,6 +30,8 @@ async def login_page(
         if not token:
             raise HTTPException(status_code=401, detail="Неправильний логін та/або пароль")
         return {"message": "Користувач війшов", "access_token": token}
+    except HTTPException:
+        raise
     except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
