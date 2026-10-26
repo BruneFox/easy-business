@@ -3,7 +3,7 @@ import jwt
 from fastapi import Header, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from model import async_session_maker
-from repository.user import UserRepository
+from repository.admin import AdminRepository
 from config import settings
 
 SECRET_KEY = settings.secret_key
@@ -13,7 +13,7 @@ async def get_db() -> AsyncGenerator[AsyncSession,None]:
         yield session
 
 async def get_active_user(session: AsyncSession, user_id:int):
-    user = await UserRepository.one_user(session,user_id)
+    user = await AdminRepository.one_user(session,user_id)
     if not user:
         raise HTTPException(status_code=401, detail="Користувача не знайдено")
     if user.is_banned:
@@ -48,4 +48,5 @@ async def get_current_admin(
 ):
     if user.get("role") != "Admin":
         raise HTTPException(status_code=403, detail="Доступ заборонено!")
+    return user
 

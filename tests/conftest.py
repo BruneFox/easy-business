@@ -1,6 +1,9 @@
 import os
 import sys
 import pathlib
+from main import app
+from model import Base
+from dependency import get_db
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -14,9 +17,6 @@ os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("DB_NAME", "test")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-prod")
 
-from main import app
-from model import Base
-from dependency import get_db
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -71,10 +71,29 @@ async def make_user(client):
 
 @pytest_asyncio.fixture
 async def create_bus(client):
-    async def _create(token: str):
+    async def _create(headers: str):
         create_response = await client.post("/create_business",
                                             json={"name": "test_name_business"},
-                                            headers=token)
+                                            headers=headers)
         body = create_response.json()
         return body
     return _create
+
+@pytest_asyncio.fixture
+async def make_admin(make_user, db_session):
+    from sqlalchemy import update
+    from model import User
+
+    async def _make(nickname: str):
+        headers = await make_user(nickname)
+        await db_session.execute(update(User).where(User.nickname == nickname).values(role="Admin"))
+        await db_session.commit()
+        return headers
+    return _make
+
+@pytest_asyncio.fixture
+async def get_user_id(client):
+    async def _get(admin_headers, nickname: str):
+        users = (await client.get("/users", headers=admin_headers)).json()
+        return next(u["id"] for u in users if u["nickname"] == nickname)
+    return _get

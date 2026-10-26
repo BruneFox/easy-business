@@ -25,8 +25,6 @@ async def test_check_businesses(client, make_user,create_bus):
     assert len(body["busisness"]) == 3
 
 async def test_sell_product(client, db_session, make_user,create_bus):
-    from sqlalchemy import update
-    from model import Busisness
 
     token = await make_user("bruno2")
     await create_bus(token)
@@ -38,7 +36,6 @@ async def test_sell_product(client, db_session, make_user,create_bus):
     b = answer["busisness"]
     id_b = b[0]["id"]
     lvl_b = b[0]["lvl"]
-
     await db_session.execute(
         update(Busisness)
         .where(Busisness.id == id_b)
@@ -56,10 +53,11 @@ async def test_sell_product(client, db_session, make_user,create_bus):
     assert check_response2.status_code == 200
     answer2 = check_response2.json()
     money2 = answer2["money"]
-
+    product2 = answer2["busisness"]
     assert money2 == money+100*2*int(lvl_b * 1.2)
+    assert product2[0]["product"] == 0
 
-async def test_upgrate(client,make_user,create_bus):
+async def test_upgrade_business_success(client,make_user,create_bus):
     token = await make_user("bruno3")
     await create_bus(token)
     check_response = await client.get("/api/my-business", headers=token)

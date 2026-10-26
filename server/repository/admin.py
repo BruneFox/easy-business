@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from model import User
 
 
-class UserRepository:
+class AdminRepository:
     @staticmethod
     async def list_user(session: AsyncSession):
         s = await session.execute(select(User).order_by(User.id))

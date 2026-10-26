@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependency import get_db, get_current_admin
-from service.user import UserService
+from service.admin import AdminService
 from schemas import ChangeMoney
 
 router = APIRouter()
@@ -14,7 +14,7 @@ async def get_user(session: AsyncSession = Depends(get_db),
                    admin: dict = Depends(get_current_admin)
                    ):
     try:
-        return await UserService.check_users(session)
+        return await AdminService.check_users(session)
     except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -29,7 +29,7 @@ async def ban_user(
                    admin: dict = Depends(get_current_admin)
                    ):
     try:
-        user_ban = await UserService.ban(session,user_id)
+        user_ban = await AdminService.ban(session,user_id)
         ban_status = "Заблоковано" if user_ban.is_banned else "Розблоковано"
         return {'message':f'Користувача {user_ban.nickname} {ban_status}'}
     except ValueError as e:
@@ -47,7 +47,7 @@ async def change_money(
         admin: dict = Depends(get_current_admin)
 ):
     try:
-        user_change = await UserService.change_m(session, user_id,count_money.cash)
+        user_change = await AdminService.change_m(session, user_id,count_money.cash)
         return {'message': f'У користувача {user_change.nickname} тепер {user_change.money} коштів' }
     except ValueError as e:
         await session.rollback()
@@ -63,7 +63,7 @@ async def give_admin(
                    admin: dict = Depends(get_current_admin)
                    ):
     try:
-        user_admin = await UserService.admin(session,user_id)
+        user_admin = await AdminService.admin(session,user_id)
         return {'message':f'Роль видано для {user_admin.nickname} '}
     except ValueError as e:
         await session.rollback()

@@ -1,12 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repository.user import UserRepository
+from repository.admin import AdminRepository
 
 
-class UserService:
+class AdminService:
     @staticmethod
     async def check_users(session: AsyncSession) :
-        users = await UserRepository.list_user(session)
+        users = await AdminRepository.list_user(session)
         result_arr=[]
         for i in users:
             result_arr.append({
@@ -21,7 +21,7 @@ class UserService:
 
     @staticmethod
     async def ban(session: AsyncSession,id:int):
-        killer = await UserRepository.one_user(session,id)
+        killer = await AdminRepository.one_user(session,id)
         if killer:
             killer.is_banned = not killer.is_banned
             session.add(killer)
@@ -32,7 +32,7 @@ class UserService:
 
     @staticmethod
     async def change_m(session: AsyncSession,id:int,cash:int):
-        user = await UserRepository.one_user(session,id)
+        user = await AdminRepository.one_user(session,id)
         if user:
             user.money += cash
             session.add(user)
@@ -43,7 +43,7 @@ class UserService:
 
     @staticmethod
     async def admin(session: AsyncSession, id: int):
-        user = await UserRepository.one_user(session, id)
+        user = await AdminRepository.one_user(session, id)
         if user:
             user.role = "Admin"
             session.add(user)

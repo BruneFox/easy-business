@@ -6,7 +6,6 @@ from service.auth import AuthService
 
 router = APIRouter()
 
-
 @router.post("/register")
 async def register_page(
         user: UserData,
