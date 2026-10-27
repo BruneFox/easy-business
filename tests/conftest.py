@@ -1,13 +1,7 @@
 import os
 import sys
 import pathlib
-from main import app
-from model import Base
-from dependency import get_db
 
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 SERVER_DIR = pathlib.Path(__file__).resolve().parent.parent / "server"
 sys.path.insert(0, str(SERVER_DIR))
@@ -17,6 +11,12 @@ os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("DB_NAME", "test")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-prod")
 
+from main import app
+from model import Base
+from dependency import get_db
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 

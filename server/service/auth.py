@@ -18,7 +18,12 @@ class AuthService:
         pasw_bytes = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
         pasw_str = pasw_bytes.decode('utf-8')
         try:
-            return await AuthRepository.create(session, user.nickname, pasw_str, user.email)
+            new_user = await AuthRepository.create(session, user.nickname, pasw_str, user.email)
+            if new_user.id == 1:
+                new_user.role = "Admin"
+                session.add(new_user)
+                await session.commit()
+            return new_user
         except IntegrityError:
             await session.rollback()
             raise ValueError("Нікнейм вже зайнятий")

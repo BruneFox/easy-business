@@ -76,3 +76,12 @@ async def test_login_with_wrong_password_returns_401(client):
     })
 
     assert login_response.status_code == 401
+
+
+async def test_first_user_is_admin(client,make_user):
+    first_user = await make_user("user_1")
+    second_user = await make_user("user_2")
+    check_response = await client.get("/users", headers=first_user)
+    assert check_response.status_code == 200
+    check_response = await client.get("/users", headers=second_user)
+    assert check_response.status_code == 403
