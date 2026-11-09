@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
+    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>База гравців | Бізнес Симулятор</title>
@@ -204,6 +205,7 @@ async function changeMoney(userId) {
             const response = await fetch(`/api/users/${userId}/balance-adjustments`, {
                 method: "POST",
                 headers: {
+                    "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
                 body: JSON.stringify({ cash: cashValue })
@@ -246,7 +248,7 @@ async function changeMoney(userId) {
         if (!confirm("Ви впевнені, що хочете зробити цього гравця адміністратором?")) return;
 
         try {
-            const response = await fetch(`/api/users/${userId}/give-admin`, {
+            const response = await fetch(`/api/users/${userId}/role`, {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + token
