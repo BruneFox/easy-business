@@ -9,7 +9,7 @@ sys.path.insert(0, str(SERVER_DIR))
 os.environ.setdefault("DB_USER", "test")
 os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("DB_NAME", "test")
-os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-prod")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-prod-0123456789")
 
 from main import app
 from model import Base
@@ -61,18 +61,20 @@ async def make_user(client):
             "email": f"{nickname}@example.com",
             "password": "correct-password-123",
         }
-        await client.post("/register", json=payload)
-        login = await client.post("/login", json={
+        register = await client.post("/api/auth/register", json=payload)
+        assert register.status_code == 201, register.text
+        login = await client.post("/api/auth/login", json={
             "nickname": nickname,
             "password": payload["password"],
         })
+        assert login.status_code == 200, login.text
         return {"Authorization": f"Bearer {login.json()['access_token']}"}
     return _make
 
 @pytest_asyncio.fixture
 async def create_bus(client):
     async def _create(headers: str):
-        create_response = await client.post("/create_business",
+        create_response = await client.post("/api/businesses",
                                             json={"name": "test_name_business"},
                                             headers=headers)
         body = create_response.json()
@@ -94,6 +96,6 @@ async def make_admin(make_user, db_session):
 @pytest_asyncio.fixture
 async def get_user_id(client):
     async def _get(admin_headers, nickname: str):
-        users = (await client.get("/users", headers=admin_headers)).json()
+        users = (await client.get("/api/users", headers=admin_headers)).json()
         return next(u["id"] for u in users if u["nickname"] == nickname)
     return _get

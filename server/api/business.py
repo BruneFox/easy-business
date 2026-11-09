@@ -1,29 +1,22 @@
-from fastapi import Depends, APIRouter, HTTPException
+from fastapi import Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependency import get_current_user, get_db
-from schemas import BusinessData, BusinessAction
+from schemas import BusinessData
 from service.business import BusinessService
 
-router = APIRouter()
+router = APIRouter(prefix="/api/businesses", tags=["businesses"])
 
-@router.post("/create_business")
+@router.post("",status_code=201)
 async def create_business(
         bis: BusinessData,
         current_user: dict = Depends(get_current_user),
         session: AsyncSession = Depends(get_db)
 ):
-    try:
-        await BusinessService.buy_new_business(session,bis,current_user["id"])
-        return {"message": "Бізнес успішно створено!"}
-    except ValueError as e:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
+    await BusinessService.buy_new_business(session,bis.name,current_user["id"])
+    return {"message": "Бізнес успішно створено!"}
 
 
-@router.get("/api/my-business")
+@router.get("")
 async def get_my_business(current_user: dict = Depends(get_current_user),
                           session: AsyncSession = Depends(get_db)
 ):
@@ -33,47 +26,26 @@ async def get_my_business(current_user: dict = Depends(get_current_user),
             "money": money,
             "busisness":result_arr}
 
-@router.post("/buy_supplie")
-async def buy_supplie(bis: BusinessAction,
+@router.post("/{business_id}/supplies")
+async def buy_supplie(business_id: int,
                       session: AsyncSession = Depends(get_db),
                       current_user: dict = Depends(get_current_user),
                       ):
-    try:
-        await BusinessService.buysup(session,bis.id,current_user["id"])
-        return {"message": "Бізнес поповнив склад"}
-    except ValueError as e:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
+    await BusinessService.buysup(session,business_id,current_user["id"])
+    return {"message": "Бізнес поповнив склад"}
 
-@router.post("/sell_product")
-async def sell_product(bis: BusinessAction,
+@router.post("/{business_id}/sales")
+async def sell_product(business_id: int,
                       session: AsyncSession = Depends(get_db),
                       current_user: dict = Depends(get_current_user),
                       ):
-    try:
-        await BusinessService.sell(session,bis.id,current_user["id"])
-        return {"message": "Товар продано"}
-    except ValueError as e:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
+    await BusinessService.sell(session,business_id,current_user["id"])
+    return {"message": "Товар продано"}
 
-@router.post("/upgrade_business")
-async def upgrade_business(bis: BusinessAction,
+@router.post("/{business_id}/upgrade")
+async def upgrade_business(business_id: int,
                       session: AsyncSession = Depends(get_db),
                       current_user: dict = Depends(get_current_user),
                       ):
-    try:
-        await BusinessService.upgrade(session,bis.id,current_user["id"])
-        return {"message": "Бізнес покращено"}
-    except ValueError as e:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(status_code=500, detail="Внутрішня помилка сервера")
+    await BusinessService.upgrade(session, business_id, current_user["id"])
+    return {"message": "Бізнес покращено"}

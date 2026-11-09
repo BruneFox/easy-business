@@ -1,12 +1,14 @@
 from typing import  AsyncGenerator
 import jwt
 from fastapi import Header, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from model import async_session_maker
 from repository.admin import AdminRepository
 from config import settings
 
 SECRET_KEY = settings.secret_key
+bearer_scheme = HTTPBearer(auto_error=False)
 
 async def get_db() -> AsyncGenerator[AsyncSession,None]:
     async with async_session_maker() as session:
@@ -21,18 +23,13 @@ async def get_active_user(session: AsyncSession, user_id:int):
     return user
 
 async def get_current_user(
-        authorization: str = Header(None),
+        credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
         session: AsyncSession = Depends(get_db)
 ):
-
-    if not authorization:
+    if not credentials:
         raise HTTPException(status_code=401, detail="Токен не знайдено")
 
-    parts = authorization.split(" ")
-    if len(parts) != 2 or parts[0] != "Bearer":
-        raise HTTPException(status_code=401, detail="Невірний формат токена")
-
-    token = parts[1]
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         user_id = payload.get("id")
