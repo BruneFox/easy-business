@@ -55,7 +55,6 @@
             color: #66fcf1;
         }
 
-        /* Кнопки */
         .action-btn {
             padding: 6px 12px;
             font-family: 'Courier New', Courier, monospace;
@@ -72,7 +71,6 @@
         .unban-btn { background: transparent; color: #66fcf1; border: 1px solid #66fcf1; }
         .unban-btn:hover { background: #66fcf1; color: #000; box-shadow: 0 0 10px rgba(102, 252, 241, 0.8); }
 
-        /* Поле вводу грошей та кнопка */
         .money-input {
             width: 70px;
             padding: 5px;
@@ -100,7 +98,7 @@
             font-weight: bold;
             margin-right: 10px;
             display: inline-block;
-            width: 70px; /* Фіксована ширина для рівного вигляду */
+            width: 70px;
         }
     </style>
 </head>
@@ -137,7 +135,7 @@
         }
 
         try {
-            const response = await fetch('/users', {
+            const response = await fetch('/api/users', {
                 method: "GET",
                 headers: {
                     "Authorization": "Bearer " + token
@@ -156,7 +154,6 @@
             users.forEach(user => {
                 const tr = document.createElement('tr');
 
-                // Блок блокування та видачі прав
                 const isBanned = user.is_banned;
                 const statusText = isBanned ? '<span class="error">ЗАБЛОКОВАНО</span>' : '<span class="success">АКТИВНИЙ</span>';
                 const btnText = isBanned ? "Розблокувати" : "Заблокувати";
@@ -170,7 +167,6 @@
                     `;
                 }
 
-                // Блок накрутки грошей
                 const moneyHtml = `
                     <div style="display: flex; align-items: center;">
                         <span class="balance-text">${user.money} $</span>
@@ -195,8 +191,7 @@
         }
     }
 
-    // Зміна балансу
-    async function changeMoney(userId) {
+async function changeMoney(userId) {
         const inputField = document.getElementById(`moneyInput_${userId}`);
         const cashValue = parseInt(inputField.value);
 
@@ -206,10 +201,9 @@
         }
 
         try {
-            const response = await fetch(`/change_money/${userId}`, {
+            const response = await fetch(`/api/users/${userId}/balance-adjustments`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
                 body: JSON.stringify({ cash: cashValue })
@@ -227,10 +221,9 @@
         }
     }
 
-    // Блокування
     async function toggleBan(userId) {
         try {
-            const response = await fetch(`/ban_user/${userId}`, {
+            const response = await fetch(`/api/users/${userId}/ban`, {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + token
@@ -249,12 +242,11 @@
         }
     }
 
-    // Видача прав адміністратора
     async function giveAdmin(userId) {
         if (!confirm("Ви впевнені, що хочете зробити цього гравця адміністратором?")) return;
 
         try {
-            const response = await fetch(`/give_admin/${userId}`, {
+            const response = await fetch(`/api/users/${userId}/give-admin`, {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + token

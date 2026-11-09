@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from repository.admin import AdminRepository
+from exceptions import AppError, NotFoundError, ForbiddenError, ConflictError
 
 
 class AdminService:
@@ -28,7 +28,7 @@ class AdminService:
             await session.commit()
             return killer
         else:
-            raise ValueError("Користувача з таким id не існує")
+            raise NotFoundError("Користувача з таким id не існує")
 
     @staticmethod
     async def change_m(session: AsyncSession,id:int,cash:int):
@@ -39,7 +39,7 @@ class AdminService:
             await session.commit()
             return user
         else:
-            raise ValueError("Користувача з таким id не існує")
+            raise NotFoundError("Користувача з таким id не існує")
 
     @staticmethod
     async def admin(session: AsyncSession, id: int):
@@ -50,4 +50,4 @@ class AdminService:
             await session.commit()
             return user
         else:
-            raise ValueError("Користувача з таким id не існує")
+            raise NotFoundError("Користувача з таким id не існує")

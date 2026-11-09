@@ -1,8 +1,7 @@
 from datetime import datetime,timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from repository.business import BusinessRepository
-from schemas import BusinessData
-
+from exceptions import AppError, NotFoundError, ForbiddenError
 
 def math_business(business_obj):
     now = datetime.now()
@@ -35,17 +34,17 @@ class BusinessService:
     @staticmethod
     async def buy_new_business(
             session: AsyncSession,
-            bis_data: BusinessData,
+            bis_data: str,
             user_id: int,
     ):
         price = 500
         user = await BusinessRepository.search_user(session,user_id)
         if not user:
-            raise ValueError("користувача не знайдено")
+            raise NotFoundError("користувача не знайдено")
         if user.money < price:
-            raise ValueError("Недостатньо коштів")
+            raise AppError("Недостатньо коштів")
         user.money -=price
-        new_business = await BusinessRepository.create(session, bis_data.name,user_id)
+        new_business = await BusinessRepository.create(session, bis_data,user_id)
         await session.commit()
         return new_business
 
@@ -79,16 +78,16 @@ class BusinessService:
             id: int):
         user_and_business = await BusinessRepository.search_business(session,bis_id,id)
         if not user_and_business:
-            raise ValueError("Користувача не знайдено")
+            raise NotFoundError("Бізнес не знайдено")
         user_obj = user_and_business[0]
         business_obj = user_and_business[1]
         math_business(business_obj)
         amount_to_buy = int(100 * business_obj.lvl * 1.5) - business_obj.warehouse
         if amount_to_buy <= 0:
-            raise ValueError("Склад заповнений")
+            raise AppError("Склад заповнений")
         cost = amount_to_buy * 1
         if user_obj.money < cost:
-            raise ValueError("Недостатньо коштів")
+            raise AppError("Недостатньо коштів")
         user_obj.money -= cost
         business_obj.warehouse += amount_to_buy
 
@@ -103,14 +102,14 @@ class BusinessService:
         user_and_business = await BusinessRepository.search_business(session, bis_id, id)
 
         if not user_and_business:
-            raise ValueError("Користувача не знайдено")
+            raise NotFoundError("Бізнес не знайдено")
         user_obj = user_and_business[0]
         business_obj = user_and_business[1]
 
         math_business(business_obj)
 
         if business_obj.product <= 0:
-            raise ValueError("Немає товару для продажу")
+            raise AppError("Немає товару для продажу")
         price = business_obj.product*2 * int(business_obj.lvl * 1.2)
         user_obj.money += price
         business_obj.product = 0
@@ -126,13 +125,13 @@ class BusinessService:
     ):
         upgradet_business = await BusinessRepository.search_business(session,bis_id,id)
         if not upgradet_business:
-            raise ValueError("Користувача не знайдено")
+            raise NotFoundError("Бізнес не знайдено")
 
         user_up = upgradet_business[0]
         business_up = upgradet_business[1]
 
         if business_up.lvl == 15:
-            raise ValueError("Максимальний рівень бізнесу")
+            raise AppError("Максимальний рівень бізнесу")
         upgrate_price = int(1200*0.75*business_up.lvl)
 
         if user_up.money>=upgrate_price:
@@ -141,15 +140,4 @@ class BusinessService:
             await session.commit()
             return user_up, business_up
         else:
-            raise ValueError("Недостатньо коштів")
-
-
-
-
-
-
-
-
-
-
-
+            raise AppError("Недостатньо коштів")

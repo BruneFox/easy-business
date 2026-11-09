@@ -147,7 +147,6 @@
             color: #fff;
         }
 
-        /* ПРОГРЕСС-БАР */
         .progress-container {
             width: 100%;
             background-color: #0b0c10;
@@ -166,7 +165,6 @@
             transition: width 0.5s ease-in-out;
         }
 
-        /* Кнопки дій */
         .action-btn {
             margin-top: 5px;
             padding: 6px;
@@ -272,11 +270,9 @@
     const token = localStorage.getItem("access_token");
     const container = document.getElementById("businesses_container");
 
-    // Функція для розшифровки ролі з JWT токена
     function checkAdminRole() {
         if (!token) return;
         try {
-            // Розбиваємо токен і декодуємо payload (середину)
             const payload = JSON.parse(atob(token.split('.')[1]));
             if (payload.role === "Admin") {
                 document.getElementById("adminPanelBtn").style.display = "inline-block";
@@ -289,12 +285,12 @@
     if (!token) {
         window.location.href = "/login_page";
     } else {
-        checkAdminRole(); // Перевіряємо роль одразу після завантаження
+        checkAdminRole();
         loadData();
     }
 
     function loadData() {
-        fetch("/api/my-business", {
+        fetch("/api/businesses", {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + token
@@ -377,10 +373,9 @@
         if (!name || name.trim() === "") return;
 
         try {
-            const response = await fetch("/create_business", {
+            const response = await fetch(`/api/businesses`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
                 body: JSON.stringify({ name: name })
@@ -399,7 +394,7 @@
 
     async function buySupplies(businessId) {
         try {
-            const response = await fetch("/buy_supplie", {
+            const response = await fetch(`/api/businesses/${businessId}/supplies`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -421,7 +416,7 @@
 
     async function sellProduct(businessId) {
         try {
-            const response = await fetch("/sell_product", {
+            const response = await fetch(`/api/businesses/${businessId}/sales`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -450,7 +445,7 @@
         }
 
         try {
-            const response = await fetch("/upgrade_business", {
+            const response = await fetch(`/api/businesses/${businessId}/upgrade`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
